@@ -69,9 +69,31 @@ func (r rangeBounds) String() string {
 	panic("unreachable")
 }
 
-func NewRangeBounds(start, end *uint64) RangeBounds {
-	return &rangeBounds{
-		start: start,
-		end:   end,
+type BuildRangeBounds func(bounds *rangeBounds)
+
+func Start(start uint64) func(bounds *rangeBounds) {
+	return func(bounds *rangeBounds) {
+		bounds.start = &start
 	}
+}
+
+func End(end uint64) func(bounds *rangeBounds) {
+	return func(bounds *rangeBounds) {
+		bounds.end = &end
+	}
+}
+
+func Range(start, end uint64) func(bounds *rangeBounds) {
+	return func(bounds *rangeBounds) {
+		bounds.start = &start
+		bounds.end = &end
+	}
+}
+
+func NewRangeBounds(opts ...BuildRangeBounds) RangeBounds {
+	r := &rangeBounds{}
+	for _, opt := range opts {
+		opt(r)
+	}
+	return r
 }

@@ -37,6 +37,26 @@ func (o *Object) Name() string {
 	return utils.GetNameFromPath(o.path)
 }
 
+// Create it creates an empty object, like using the following linux commands:
+//	- `touch path/to/file`
+//	- `mkdir path/to/dir/`
+//
+// behaviors:
+//
+//	- create on existing dir will succeed.
+//	- create on existing file will overwrite and truncate it.
+//
+// create a file:
+// 	acc, _ := newS3Accessor()
+//	op := NewOperatorFromAccessor(acc)
+//	object := op.Object("test")
+//	_ = object.Create(context.TODO())
+//
+// create a dir:
+// 	acc, _ := newS3Accessor()
+//	op := NewOperatorFromAccessor(acc)
+//	object := op.Object("test-dir/")
+//	_ = object.Create(context.TODO())
 func (o *Object) Create(ctx context.Context) error {
 	if strings.HasPrefix(o.path, "/") {
 		return o.accessor.Create(ctx, o.path, options.CreateOptions{Mode: int8(interfaces.DIR)})
@@ -44,10 +64,32 @@ func (o *Object) Create(ctx context.Context) error {
 	return o.accessor.Create(ctx, o.path, options.CreateOptions{Mode: int8(interfaces.FILE)})
 }
 
+// Read It returns a io.ReadCloser holds the whole object.
+//
+// read a file:
+// 	acc, _ := newS3Accessor()
+//	op := NewOperatorFromAccessor(acc)
+//	object := op.Object("test")
+//	_ = object.Write(context.TODO(), []byte("Hello,World!"))
+//	reader, _ := object.Read(context.TODO())
+//
+//	_, _ = io.ReadAll(reader)
 func (o *Object) Read(ctx context.Context) (io.ReadCloser, error) {
 	return o.RangeRead(ctx, nil)
 }
 
+// RangeRead it returns a io.ReadCloser holds specified range of object .
+//
+// range read:
+// 	acc, _ := newS3Accessor()
+//	op := NewOperatorFromAccessor(acc)
+//	object := op.Object("test")
+//	_ = object.Write(context.TODO(), []byte("Hello,World!"))
+//	reader, _ := object.RangeRead(context.TODO(), options.NewRangeBounds(options.Range(0, 11)))
+//	// object.RangeRead(context.TODO(), options.NewRangeBounds(options.Start(2)))
+//	// object.RangeRead(context.TODO(), options.NewRangeBounds(options.End(11)))
+//
+//	_, _ = io.ReadAll(reader)
 func (o *Object) RangeRead(ctx context.Context, bytesRange options.RangeBounds) (io.ReadCloser, error) {
 	opt := options.ReadOptions{}
 	if bytesRange != nil {
@@ -62,6 +104,13 @@ var (
 	ErrNotADir      = errors.New("not a directory")
 )
 
+//  Write it writes bytes into object.
+//
+// write text:
+// 	acc, _ := newS3Accessor()
+//	op := NewOperatorFromAccessor(acc)
+//	object := op.Object("test")
+//	_ = object.Write(context.TODO(), []byte("Hello,World!"))
 func (o *Object) Write(ctx context.Context, byte []byte) error {
 	if strings.HasSuffix(o.path, "/") {
 		return ErrTryWrite2Dir
@@ -74,10 +123,32 @@ func (o *Object) Write(ctx context.Context, byte []byte) error {
 	return nil
 }
 
+// Delete it deletes object.
+//
+// delete:
+// 	acc, _ := newS3Accessor()
+//	op := NewOperatorFromAccessor(acc)
+//	object := op.Object("test")
+//	_ = object.Delete(context.TODO())
 func (o *Object) Delete(ctx context.Context) error {
 	return o.accessor.Delete(ctx, o.path, options.DeleteOptions{})
 }
 
+// List it lists current directory object, returns a interfaces.ObjectStream.
+//
+// list:
+// 	acc, _ := newS3Accessor()
+//	op := NewOperatorFromAccessor(acc)
+//	object := op.Object("dir/")
+//	stream, _ := object.List(context.TODO())
+//	for stream.HasNext() {
+//		entry, _ := stream.Next(context.TODO())
+//		if entry != nil {
+//			fmt.Println(entry.Path())
+//			fmt.Println(entry.Metadata().LastModified())
+//			fmt.Println(entry.Metadata().ContentLength())
+//		}
+//	}
 func (o *Object) List(ctx context.Context) (interfaces.ObjectStream, error) {
 	if !strings.HasPrefix(o.path, "/") {
 		return nil, ErrNotADir
@@ -85,10 +156,33 @@ func (o *Object) List(ctx context.Context) (interfaces.ObjectStream, error) {
 	return o.accessor.List(ctx, o.path, options.ListOptions{})
 }
 
+// Metadata it returns object's metadata, returns a interfaces.ObjectMetadata
+//
+// fetch metadata:
+//	acc, _ := newS3Accessor()
+//	op := NewOperatorFromAccessor(acc)
+//	object := op.Object("test")
+//	meta, err := object.Metadata(context.TODO())
+//	if err == errors.ErrNotFound {
+//		fmt.Println("not found")
+//		return
+//	}
+//	fmt.Println(meta.LastModified())
+//	fmt.Println(meta.ETag())
+//	fmt.Println(meta.ContentLength())
+//	fmt.Println(meta.ContentMD5())
+//	fmt.Println(meta.Mode())
 func (o *Object) Metadata(ctx context.Context) (interfaces.ObjectMetadata, error) {
 	return o.accessor.Stat(ctx, o.path, options.StatOptions{})
 }
 
+// IsExist returns true if object exits
+//
+// example:
+// 	acc, _ := newS3Accessor()
+//	op := NewOperatorFromAccessor(acc)
+//	object := op.Object("test")
+//	fmt.Println(object.IsExist(context.TODO()))
 func (o *Object) IsExist(ctx context.Context) (bool, error) {
 	_, err := o.accessor.Stat(ctx, o.path, options.StatOptions{})
 	if err != nil {

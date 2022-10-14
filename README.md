@@ -17,7 +17,7 @@
 </p>
 
 
-**Y**et **A**nother **D**ata **A**ccess **L**ayer: Access data freely, efficiently, and without the tears 😢
+**Y**et **A**nother **D**ata **A**ccess **L**ayer: Access data freely, efficiently, without the tears 😢
 
 inspired by [Databend's OpenDAL](https://github.com/datafuselabs/opendal)
 
@@ -27,26 +27,37 @@ inspired by [Databend's OpenDAL](https://github.com/datafuselabs/opendal)
 - [Installation](#installation)
 - [Get started](#get-started)
 - [Documentation](#documentation)
+  - [Object](#object)
+    - [Handler](#handler)
+    - [IsExist](#isexist)
+    - [Metadata](#metadata)
+    - [Create a dir or a file](#create-a-dir-or-a-object)
+    - [Read](#read)
+    - [Range Read](#range-read)
+    - [Write](#write)
+    - [Delete](#delete)
+    - [List current directory](#list-current-directory)
+  
 - [License](#license)
 
 ## Features
 
-Access data freely
+**Freely**
 - [x] Access different storage services in the same way
 - [ ] Behavior tests for all services
   - [x] S3 and S3 compatible services
   - [ ] fs: POSIX compatible filesystem
 
-Access data without  the tears 😢
-- [x] Powerful Layer middleware
-- [ ] Automatic retry support
+**Without the tears 😢**
+- [x] Powerful Layer Middlewares
+- [ ] Auto Retry (Backoff)
 - [ ] Logging Layer
 - [ ] Tracing Layer
 - [ ] Metrics Layer
-- [ ] Native decompress support
-- [ ] Native service-side encryption support
+- [ ] Compress/Decompress
+- [ ] Service-side encryption
 
-Access data efficiently
+**Efficiently**
 - Zero cost: mapping to underlying API calls directly
 - Auto metadata reuse: avoid extra metadata calls
 
@@ -122,6 +133,161 @@ See the [Documentation](https://godoc.org/github.com/senrok/yadal) or explore mo
 <a href="https://godoc.org/github.com/senrok/yadal">
 <img src="https://godoc.org/github.com/senrok/yadal?status.svg" alt="GoDoc">
 </a>
+
+### Object
+#### Handler
+```go
+func ExampleOperator_Object() {
+	acc, _ := newS3Accessor()
+	op := NewOperatorFromAccessor(acc)
+	// it returns a object.Object handler 
+	object := op.Object("test")
+	fmt.Println(object.ID())
+	fmt.Println(object.Path())
+	fmt.Println(object.Name())
+}
+```
+#### Create a dir or a object
+It creates an empty object, like using the following linux commands:
+- `touch path/to/file`
+- `mkdir path/to/dir/`
+
+The behaviors: 
+- create on existing dir will succeed.
+- create on existing file will overwrite and truncate it.
+
+a dir:
+```go
+func ExampleOperator_Object_create() {
+	acc, _ := newS3Accessor()
+	op := NewOperatorFromAccessor(acc)
+	object := op.Object("test/")
+	_ = object.Create(context.TODO())
+}
+```
+
+a object:
+```go
+func ExampleOperator_Object_create() {
+	acc, _ := newS3Accessor()
+	op := NewOperatorFromAccessor(acc)
+	object := op.Object("test")
+	_ = object.Create(context.TODO())
+}
+```
+
+#### IsExist
+
+```go
+func ExampleOperator_Object_isExist() {
+	acc, _ := newS3Accessor()
+	op := NewOperatorFromAccessor(acc)
+	object := op.Object("test")
+	fmt.Println(object.IsExist(context.TODO()))
+}
+```
+
+#### Metadata
+
+```go
+func ExampleOperator_Object_metadata() {
+	acc, _ := newS3Accessor()
+	op := NewOperatorFromAccessor(acc)
+	object := op.Object("test")
+	meta, err := object.Metadata(context.TODO())
+	if err == errors.ErrNotFound {
+		fmt.Println("not found")
+		return
+	}
+	fmt.Println(meta.LastModified())
+	fmt.Println(meta.ETag())
+	fmt.Println(meta.ContentLength())
+	fmt.Println(meta.ContentMD5())
+	fmt.Println(meta.Mode())
+}
+```
+
+#### Read
+
+It returns a io.ReadCloser holds the whole object.
+
+```go
+func ExampleOperator_Object_read() {
+	acc, _ := newS3Accessor()
+	op := NewOperatorFromAccessor(acc)
+	object := op.Object("test")
+	_ = object.Write(context.TODO(), []byte("Hello,World!"))
+	reader, _ := object.Read(context.TODO())
+
+	_, _ = io.ReadAll(reader)
+}
+```
+
+
+#### Range Read
+
+It returns a io.ReadCloser holds specified range of object .
+
+```go
+func ExampleOperator_Object_rangeRead() {
+	acc, _ := newS3Accessor()
+	op := NewOperatorFromAccessor(acc)
+	object := op.Object("test")
+	_ = object.Write(context.TODO(), []byte("Hello,World!"))
+	reader, _ := object.RangeRead(context.TODO(), options.NewRangeBounds(options.Range(0, 11)))
+	_, _ = object.RangeRead(context.TODO(), options.NewRangeBounds(options.Start(2)))
+	_, _ = object.RangeRead(context.TODO(), options.NewRangeBounds(options.End(11)))
+
+	_, _ = io.ReadAll(reader)
+}
+```
+
+#### Write
+
+It writes bytes into object.
+
+```go
+func ExampleOperator_Object_write() {
+	acc, _ := newS3Accessor()
+	op := NewOperatorFromAccessor(acc)
+	object := op.Object("test")
+	_ = object.Write(context.TODO(), []byte("Hello,World!"))
+}
+```
+
+#### Delete
+
+It deletes object.
+
+```go
+func ExampleOperator_Object_delete() {
+	acc, _ := newS3Accessor()
+	op := NewOperatorFromAccessor(acc)
+	object := op.Object("test")
+	_ = object.Delete(context.TODO())
+}
+```
+
+#### List current directory
+
+It returns a [interfaces.ObjectStream](./interfaces/stream.go).
+
+```go
+func ExampleOperator_Object_list() {
+	acc, _ := newS3Accessor()
+	op := NewOperatorFromAccessor(acc)
+	object := op.Object("dir/")
+	stream, _ := object.List(context.TODO())
+	for stream.HasNext() {
+		entry, _ := stream.Next(context.TODO())
+		if entry != nil {
+			fmt.Println(entry.Path())
+			fmt.Println(entry.Metadata().LastModified())
+			fmt.Println(entry.Metadata().ContentLength())
+		}
+	}
+}
+```
 
 ## License
 
