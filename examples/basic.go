@@ -1,38 +1,23 @@
-package operator
+package main
 
 import (
 	"context"
 	"fmt"
+	"github.com/senrok/yadal"
 	"github.com/senrok/yadal/providers/s3"
 	"os"
-	"testing"
 )
 
-var (
-	DAL_BUCKET            string
-	DAL_ENDPOINT          string
-	DAL_ACCESS_KEY_ID     string
-	DAL_SECRET_ACCESS_KEY string
-)
-
-func TestMain(m *testing.M) {
-	provider := os.Getenv("DAL_PROVIDER")
-	if provider == "" {
-		panic(fmt.Errorf("please set the DAL_PROVIDER env"))
-	}
-	os.Exit(m.Run())
-}
-
-func ExampleFromAccessor() {
+func main() {
 	acc, _ := s3.NewDriver(context.Background(), s3.Options{
-		Bucket:    "",
-		Endpoint:  "",
-		Root:      "",
-		Region:    "",
-		AccessKey: "",
-		SecretKey: "",
+		Bucket:    os.Getenv("Bucket"),
+		Endpoint:  os.Getenv("Endpoint"),
+		Root:      os.Getenv("Root"),
+		Region:    os.Getenv("Region"),
+		AccessKey: os.Getenv("AccessKey"),
+		SecretKey: os.Getenv("SecretKey"),
 	})
-	op := FromAccessor(acc)
+	op := yadal.NewOperatorFromAccessor(acc)
 	// Create object handler
 	o := op.Object("test_file")
 

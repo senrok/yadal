@@ -1,4 +1,4 @@
-package operator
+package yadal
 
 import (
 	"github.com/senrok/yadal/interfaces"
@@ -19,8 +19,8 @@ func (o *Operator) Layer(layer layer.Layer) *Operator {
 	return o
 }
 
-// FromAccessor returns the Operator from the interfaces.Accessor
-func FromAccessor(acc interfaces.Accessor) Operator {
+// NewOperatorFromAccessor returns the Operator from the interfaces.Accessor
+func NewOperatorFromAccessor(acc interfaces.Accessor) Operator {
 	return Operator{
 		accessor: acc,
 	}
