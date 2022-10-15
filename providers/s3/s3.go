@@ -55,7 +55,7 @@ func (d *Driver) Create(ctx context.Context, path string, _ options.CreateOption
 	case http.StatusCreated, http.StatusOK:
 		return nil
 	default:
-		return errors.ParserError(errors.ErrCreateFailed, path, resp)
+		return errors.ParseS3Error(errors.ErrCreateFailed, req.URL.String(), resp)
 	}
 }
 
@@ -65,10 +65,10 @@ func (d *Driver) Read(ctx context.Context, path string, args options.ReadOptions
 		return nil, errors.Wrap(errors.ErrReadFailed, err)
 	}
 	switch resp.StatusCode {
-	case http.StatusCreated, http.StatusOK:
+	case http.StatusPartialContent, http.StatusOK:
 		return resp.Body, nil
 	default:
-		return nil, errors.ParserError(errors.ErrReadFailed, path, resp)
+		return nil, errors.ParseS3Error(errors.ErrReadFailed, path, resp)
 	}
 }
 
@@ -90,7 +90,7 @@ func (d *Driver) Write(ctx context.Context, path string, args options.WriteOptio
 	case http.StatusCreated, http.StatusOK:
 		return args.Size, nil
 	default:
-		return 0, errors.ParserError(errors.ErrWriteFailed, path, resp)
+		return 0, errors.ParseS3Error(errors.ErrWriteFailed, path, resp)
 	}
 }
 
@@ -116,12 +116,12 @@ func (d *Driver) Stat(ctx context.Context, path string, args options.StatOptions
 		return md, nil
 
 	case http.StatusNotFound:
-		if strings.HasPrefix(path, "/") {
+		if strings.HasSuffix(path, "/") {
 			return object.Metadata{ObjectMode: interfaces.DIR}, nil
 		}
 		fallthrough // handles other cases
 	default:
-		return nil, errors.ParserError(errors.ErrStatFailed, path, resp)
+		return nil, errors.ParseS3Error(errors.ErrStatFailed, path, resp)
 	}
 }
 
@@ -134,7 +134,7 @@ func (d *Driver) Delete(ctx context.Context, path string, args options.DeleteOpt
 	case http.StatusNoContent:
 		return nil
 	default:
-		return errors.ParserError(errors.ErrDeleteFailed, path, resp)
+		return errors.ParseS3Error(errors.ErrDeleteFailed, path, resp)
 	}
 }
 
@@ -184,7 +184,7 @@ func (d *Driver) CreateMultipart(ctx context.Context, path string, args options.
 		}
 		return output.UploadId, nil
 	default:
-		return "", errors.ParserError(errors.ErrCreateMultipartFailed, path, resp)
+		return "", errors.ParseS3Error(errors.ErrCreateMultipartFailed, path, resp)
 	}
 }
 
@@ -208,7 +208,7 @@ func (d *Driver) WriteMultipart(ctx context.Context, path string, args options.W
 		}, nil
 
 	default:
-		return nil, errors.ParserError(errors.ErrWriteMultipartFailed, path, resp)
+		return nil, errors.ParseS3Error(errors.ErrWriteMultipartFailed, path, resp)
 	}
 }
 
@@ -227,7 +227,7 @@ func (d *Driver) CompleteMultipart(ctx context.Context, path string, args option
 	case http.StatusOK:
 		return nil
 	default:
-		return errors.ParserError(errors.ErrCompleteMultipartFailed, path, resp)
+		return errors.ParseS3Error(errors.ErrCompleteMultipartFailed, path, resp)
 	}
 }
 
@@ -241,7 +241,7 @@ func (d *Driver) AbortMultipart(ctx context.Context, path string, args options.A
 	case http.StatusOK:
 		return nil
 	default:
-		return errors.ParserError(errors.ErrAbortMultipartFailed, path, resp)
+		return errors.ParseS3Error(errors.ErrAbortMultipartFailed, path, resp)
 	}
 }
 
@@ -274,7 +274,7 @@ func (d *Driver) detectRegion(ctx context.Context, bucket string) (endpoint stri
 		}
 		return
 	default:
-		return "", "", errors.ParserError(errors.ErrDetectRegionFailed, req.URL.String(), resp)
+		return "", "", errors.ParseS3Error(errors.ErrDetectRegionFailed, req.URL.String(), resp)
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"github.com/senrok/yadal/constants"
 	"github.com/senrok/yadal/interfaces"
 	"github.com/senrok/yadal/utils"
+	"io/fs"
 	"net/http"
 	"strconv"
 	"strings"
@@ -48,6 +49,22 @@ func NewMetadata(opts ...MetadataOptions) (interfaces.ObjectMetadata, error) {
 		}
 	}
 	return metadata, nil
+}
+
+func SetFromFileInfo(info fs.FileInfo) MetadataOptions {
+	return func(metadata *Metadata) error {
+		mode := interfaces.Unknown
+		if info.Mode().IsRegular() {
+			mode = interfaces.FILE
+		} else if info.Mode().IsDir() {
+			mode = interfaces.DIR
+		}
+		metadata.ObjectMode = mode
+		return SetMetadata(
+			uint64(info.Size()),
+			info.ModTime(),
+			"")(metadata)
+	}
 }
 
 func SetMode(mode interfaces.ObjectMode) MetadataOptions {

@@ -9,6 +9,10 @@ type Operator struct {
 	accessor interfaces.Accessor
 }
 
+func (o *Operator) Metadata() interfaces.Metadata {
+	return o.accessor.Metadata()
+}
+
 // Object returns an object.Object handler
 func (o *Operator) Object(path string) object.Object {
 	return object.NewObject(o.accessor, path)

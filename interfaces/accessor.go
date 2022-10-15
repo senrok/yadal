@@ -92,15 +92,20 @@ type Accessor interface {
 
 type Capability uint8
 
-func (c Capability) Has(capability Capability) bool {
-	return c&capability > 0
+func (c Capability) Has(capabilities ...Capability) bool {
+	for _, capability := range capabilities {
+		if c&capability == 0 {
+			return false
+		}
+	}
+	return true
 }
 
 func (c Capability) String() string {
 	var result []string
 	for _, capability := range cRange {
 		if c.Has(capability) {
-			result = append(result, rg2Str[c])
+			result = append(result, capability.CapString())
 		}
 	}
 	return strings.Join(result, "|")
@@ -108,8 +113,26 @@ func (c Capability) String() string {
 
 var (
 	cRange = []Capability{Read, Write, List, PreSign, Multipart, Blocking}
-	rg2Str = []string{"Read", "Write", "List", "PreSign", "Multipart", "Blocking"}
 )
+
+func (c Capability) CapString() string {
+	switch c {
+	case Read:
+		return "Read"
+	case Write:
+		return "Write"
+	case List:
+		return "List"
+	case PreSign:
+		return "PreSign"
+	case Multipart:
+		return "Multipart"
+	case Blocking:
+		return "Blocking"
+	default:
+		return "Unknown"
+	}
+}
 
 const (
 	// Read `read` and `stat`

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 )
 
 var (
@@ -46,10 +47,28 @@ func (error ObjectError) Is(other error) bool {
 }
 
 func (error ObjectError) Error() string {
-	return fmt.Sprintf("kind %s\nsource:%s\npath: %s\nbody: %s\n", error.kind, error.source, error.path, string(error.body))
+	if error.body != nil {
+		return fmt.Sprintf("kind %s\nsource:%s\npath: %s\nbody: %s\n", error.kind, error.source, error.path, string(error.body))
+	}
+	return fmt.Sprintf("kind %s\nsource:%s\npath: %s\n", error.kind, error.source, error.path)
 }
 
-func ParserError(err error, path string, resp *http.Response) error {
+func ParseFsError(src, err error, path string) error {
+	var kind error
+	if os.IsNotExist(err) {
+		kind = ErrNotFound
+	} else {
+		kind = err
+	}
+	return ObjectError{
+		source: src,
+		kind:   kind,
+		path:   "",
+		body:   nil,
+	}
+}
+
+func ParseS3Error(err error, path string, resp *http.Response) error {
 	var kind error
 	switch resp.StatusCode {
 	case http.StatusNotFound:

@@ -57,51 +57,51 @@ func (l loggingAccessor) Metadata() interfaces.Metadata {
 }
 
 func (l loggingAccessor) Create(ctx context.Context, path string, args options.CreateOptions) error {
-	l.Infof("dal::service service=%s operation=%s -> starting", interfaces.CreateOp, l.innerProvider())
+	l.Infof("dal::service service=%s operation=%s path=%s mode=%s -> starting", interfaces.CreateOp, l.innerProvider(), path, interfaces.ObjectMode(args.Mode))
 	err := l.inner.Create(ctx, path, args)
-	l.Infof("dal::service service=%s operation=%s -> finished", interfaces.CreateOp, l.innerProvider())
+	l.Infof("dal::service service=%s operation=%s path=%s mode=%s -> finished", interfaces.CreateOp, l.innerProvider(), path, interfaces.ObjectMode(args.Mode))
 	if err != nil {
-		l.Infof("dal::service service=%s operation=%s -> error: %s", interfaces.CreateOp, l.innerProvider(), err)
+		l.Infof("dal::service service=%s operation=%s path=%s mode=%s -> error: %s", interfaces.CreateOp, l.innerProvider(), path, interfaces.ObjectMode(args.Mode), err)
 	}
 	return err
 }
 
 func (l loggingAccessor) Read(ctx context.Context, path string, args options.ReadOptions) (io.ReadCloser, error) {
-	l.Infof("dal::service service=%s operation=%s size=%s offset=%s -> starting", interfaces.ReadOp, l.innerProvider(), utils.FmtPtrUint64(args.Size), utils.FmtPtrUint64(args.Offset))
+	l.Infof("dal::service service=%s operation=%s path=%s size=%s offset=%s -> starting", interfaces.ReadOp, path, l.innerProvider(), utils.FmtPtrUint64(args.Size), utils.FmtPtrUint64(args.Offset))
 	reader, err := l.inner.Read(ctx, path, args)
-	l.Infof("dal::service service=%s operation=%s -> finished", interfaces.ReadOp, l.innerProvider())
+	l.Infof("dal::service service=%s operation=%s path=%s size=%s offset=%s -> finished", interfaces.ReadOp, path, l.innerProvider(), utils.FmtPtrUint64(args.Size), utils.FmtPtrUint64(args.Offset))
 	if err != nil {
-		l.Infof("dal::service service=%s operation=%s -> error: %s", interfaces.ReadOp, l.innerProvider(), err)
+		l.Infof("dal::service service=%s operation=%s path=%s size=%s offset=%s -> error: %s", interfaces.ReadOp, path, l.innerProvider(), utils.FmtPtrUint64(args.Size), utils.FmtPtrUint64(args.Offset), err)
 	}
 	return reader, err
 }
 
 func (l loggingAccessor) Write(ctx context.Context, path string, args options.WriteOptions, reader io.ReadSeeker) (uint64, error) {
-	l.Infof("dal::service service=%s operation=%s size=%s -> starting", interfaces.WriteOp, l.innerProvider(), args.Size)
+	l.Infof("dal::service service=%s operation=%s path=%s size=%d -> starting", interfaces.WriteOp, path, l.innerProvider(), args.Size)
 	size, err := l.inner.Write(ctx, path, args, reader)
-	l.Infof("dal::service service=%s operation=%s -> finished", interfaces.WriteOp, l.innerProvider())
+	l.Infof("dal::service service=%s operation=%s path=%s size=%d -> finished", interfaces.WriteOp, path, l.innerProvider(), args.Size)
 	if err != nil {
-		l.Infof("dal::service service=%s operation=%s -> error: %s", interfaces.WriteOp, l.innerProvider(), err)
+		l.Infof("dal::service service=%s operation=%s path=%s size=%d -> error: %s", interfaces.WriteOp, path, l.innerProvider(), args.Size, err)
 	}
 	return size, err
 }
 
 func (l loggingAccessor) Stat(ctx context.Context, path string, args options.StatOptions) (interfaces.ObjectMetadata, error) {
-	l.Infof("dal::service service=%s operation=%s -> starting", interfaces.StatOp, l.innerProvider())
+	l.Infof("dal::service service=%s operation=%s path=%s -> starting", interfaces.StatOp, l.innerProvider(), path)
 	meta, err := l.inner.Stat(ctx, path, args)
-	l.Infof("dal::service service=%s operation=%s -> finished", interfaces.StatOp, l.innerProvider())
+	l.Infof("dal::service service=%s operation=%s path=%s -> finished", interfaces.StatOp, l.innerProvider(), path)
 	if err != nil {
-		l.Infof("dal::service service=%s operation=%s -> error: %s", interfaces.StatOp, l.innerProvider(), err)
+		l.Infof("dal::service service=%s operation=%s path=%s -> error: %s", interfaces.StatOp, l.innerProvider(), path, err)
 	}
 	return meta, err
 }
 
 func (l loggingAccessor) Delete(ctx context.Context, path string, args options.DeleteOptions) error {
-	l.Infof("dal::service service=%s operation=%s -> starting", interfaces.DeleteOp, l.innerProvider())
+	l.Infof("dal::service service=%s operation=%s path=%s -> starting", interfaces.DeleteOp, l.innerProvider(), path)
 	err := l.inner.Delete(ctx, path, args)
-	l.Infof("dal::service service=%s operation=%s -> finished", interfaces.DeleteOp, l.innerProvider())
+	l.Infof("dal::service service=%s operation=%s path=%s -> finished", interfaces.DeleteOp, l.innerProvider(), path)
 	if err != nil {
-		l.Infof("dal::service service=%s operation=%s -> error: %s", interfaces.DeleteOp, l.innerProvider(), err)
+		l.Infof("dal::service service=%s operation=%s path=%s -> error: %s", interfaces.DeleteOp, l.innerProvider(), path, err)
 	}
 	return err
 }

@@ -11,7 +11,7 @@ const (
 )
 
 func ObjectModeFromPath(path string) ObjectMode {
-	if strings.HasPrefix(path, "/") {
+	if strings.HasSuffix(path, "/") {
 		return DIR
 	}
 	return FILE

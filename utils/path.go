@@ -8,6 +8,25 @@ import (
 	"unicode/utf8"
 )
 
+// NormalizePath Make sure all operation are constructed by normalized path:
+//
+// - Path endswith `/` means it's a dir path.
+// - Otherwise, it's a file path.
+//
+// # Normalize Rules
+//
+// - All whitespace will be trimmed: ` abc/def ` => `abc/def`
+// - All leading / will be trimmed: `///abc` => `abc`
+// - Internal // will be replaced by /: `abc///def` => `abc/def`
+// - Empty path will be `/`: `` => `/`
+func NormalizePath(path string) string {
+	path = strings.TrimLeft(path, "/")
+	if path == "" {
+		return "/"
+	}
+	return path
+}
+
 // NormalizeRoot Make sure root is normalized to style like `/abc/def/`.
 //
 // # Normalize Rules
@@ -92,7 +111,7 @@ func EncodePath(pathName string) string {
 			continue
 		}
 		switch s {
-		case '-', '_', '.', '~', '/': // §2.3 Unreserved characters (mark)
+		case '-', '_', '.', '~', '/', '(', ')', '!', '*', '\'': // §2.3 Unreserved characters (mark)
 			encodedPathname.WriteRune(s)
 			continue
 		default:
@@ -126,5 +145,5 @@ func GetNameFromPath(path string) string {
 	if idx == -1 {
 		return path
 	}
-	return path[idx+1:]
+	return path[idx+1:] + "/"
 }
