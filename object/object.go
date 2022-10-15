@@ -21,12 +21,12 @@ type Object struct {
 func NewObject(a interfaces.Accessor, p string) Object {
 	return Object{
 		accessor: a,
-		path:     p,
+		path:     utils.NormalizePath(p),
 	}
 }
 
 func (o *Object) ID() string {
-	return fmt.Sprintf("%s/%s", o.accessor.Metadata().Root(), o.path)
+	return fmt.Sprintf("%s%s", o.accessor.Metadata().Root(), o.path)
 }
 
 func (o *Object) Path() string {
@@ -58,7 +58,7 @@ func (o *Object) Name() string {
 //	object := op.Object("test-dir/")
 //	_ = object.Create(context.TODO())
 func (o *Object) Create(ctx context.Context) error {
-	if strings.HasPrefix(o.path, "/") {
+	if strings.HasSuffix(o.path, "/") {
 		return o.accessor.Create(ctx, o.path, options.CreateOptions{Mode: int8(interfaces.DIR)})
 	}
 	return o.accessor.Create(ctx, o.path, options.CreateOptions{Mode: int8(interfaces.FILE)})
@@ -91,6 +91,9 @@ func (o *Object) Read(ctx context.Context) (io.ReadCloser, error) {
 //
 //	_, _ = io.ReadAll(reader)
 func (o *Object) RangeRead(ctx context.Context, bytesRange options.RangeBounds) (io.ReadCloser, error) {
+	if strings.HasSuffix(o.path, "/") {
+		return nil, ErrIsADir
+	}
 	opt := options.ReadOptions{}
 	if bytesRange != nil {
 		opt.Offset = bytesRange.Offset()
@@ -102,6 +105,7 @@ func (o *Object) RangeRead(ctx context.Context, bytesRange options.RangeBounds) 
 var (
 	ErrTryWrite2Dir = errors.New("try write bytes to a dir")
 	ErrNotADir      = errors.New("not a directory")
+	ErrIsADir       = errors.New("is a directory")
 )
 
 //  Write it writes bytes into object.

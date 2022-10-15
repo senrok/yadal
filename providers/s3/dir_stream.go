@@ -31,7 +31,7 @@ func (d *DirStream) NextPage(ctx context.Context) ([]interfaces.Entry, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.ParserError(errors.ErrListFailed, d.path, resp)
+		return nil, errors.ParseS3Error(errors.ErrListFailed, d.path, resp)
 	}
 	output := Output{}
 	err = xml.NewDecoder(resp.Body).Decode(&output)

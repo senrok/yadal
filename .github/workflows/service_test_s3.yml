@@ -43,8 +43,9 @@ jobs:
 
       - name: Test
         shell: bash
-        run: go test ./providers/s3/...
+        run: go test ./tests/...
         env:
+          TEST_DEBUG: on
           DAL_S3_TEST: on
           DAL_S3_BUCKET: test
           DAL_S3_ENDPOINT: "http://127.0.0.1:9000"
@@ -75,8 +76,9 @@ jobs:
           ./mc anonymous set public local/test
       - name: Test
         shell: bash
-        run: go test ./providers/s3/...
+        run: go test ./tests/...
         env:
+          TEST_DEBUG: on
           DAL_S3_TEST: on
           DAL_S3_BUCKET: test
           DAL_S3_ENDPOINT: "http://127.0.0.1:9000"

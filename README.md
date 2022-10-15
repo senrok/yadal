@@ -13,7 +13,12 @@
 <a href="https://godoc.org/github.com/senrok/yadal">
 <img src="https://godoc.org/github.com/senrok/yadal?status.svg" alt="GoDoc">
 </a>
+<a href="https://github.com/senrok/yadal/actions/workflows/service_test_s3.yml">
 <img src="https://github.com/senrok/yadal/actions/workflows/service_test_s3.yml/badge.svg"/>
+</a>
+<a href="https://github.com/senrok/yadal/actions/workflows/service_test_fs.yml">
+<img src="https://github.com/senrok/yadal/actions/workflows/service_test_fs.yml/badge.svg"/>
+</a>
 </p>
 
 
@@ -334,7 +339,8 @@ func ExampleOperator_Layer_logging() {
 	// logging layer
 	loggingLayer := layers.NewLoggingLayer(
 		layers.SetLogger(
-			layers.NewLoggerAdapter(s.Info, s.Infof),
+			layers.NewLo
+			ggerAdapter(s.Info, s.Infof),
 		),
 	)
 

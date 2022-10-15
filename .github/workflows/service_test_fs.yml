@@ -1,0 +1,29 @@
+name: Service Test POSIX
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "docs/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  fs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test
+        shell: bash
+        run: go test ./tests/...
+        env:
+          TEST_DEBUG: on
+          DAL_FS_TEST: on
+          DAL_FS_ROOT: /tmp/

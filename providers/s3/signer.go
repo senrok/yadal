@@ -60,8 +60,12 @@ func NewNaiveSignerProvider(a, s string) credentials.Provider {
 func NewSigner(service, region, accessKey, secretKey string, allow_anonymous bool) Signer {
 	return &signer{
 		Anonymous: allow_anonymous && accessKey == "" && secretKey == "",
-		Signer:    v4.NewSigner(credentials.NewCredentials(NewNaiveSignerProvider(accessKey, secretKey))),
-		Service:   service,
-		Region:    region,
+		Signer: v4.NewSigner(
+			credentials.NewCredentials(NewNaiveSignerProvider(accessKey, secretKey)), func(s *v4.Signer) {
+				s.DisableURIPathEscaping = true
+			},
+		),
+		Service: service,
+		Region:  region,
 	}
 }

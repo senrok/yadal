@@ -24,11 +24,11 @@ func (br bytesRange) Size() *uint64 {
 
 func (br bytesRange) String() string {
 	if br.size != nil && br.offset != nil {
-		return fmt.Sprintf("bytes={%d}-{%d}", *br.offset, *br.offset+*br.size-1)
+		return fmt.Sprintf("bytes=%d-%d", *br.offset, *br.offset+*br.size-1)
 	} else if br.offset != nil {
-		return fmt.Sprintf("bytes={%d}-", *br.offset)
+		return fmt.Sprintf("bytes=%d-", *br.offset)
 	} else if br.size != nil {
-		return fmt.Sprintf("bytes=-{%d}", *br.size-1)
+		return fmt.Sprintf("bytes=-%d", *br.size-1)
 	}
 	panic("unreachable")
 }
@@ -60,11 +60,11 @@ func (r rangeBounds) Size() *uint64 {
 
 func (r rangeBounds) String() string {
 	if r.Size() != nil && r.Offset() != nil {
-		return fmt.Sprintf("bytes={%d}-{%d}", *r.Offset(), *r.Offset()+*r.Size()-1)
+		return fmt.Sprintf("bytes=%d-%d", *r.Offset(), *r.Offset()+*r.Size()-1)
 	} else if r.Offset() != nil {
-		return fmt.Sprintf("bytes={%d}-", *r.Offset())
+		return fmt.Sprintf("bytes=%d-", *r.Offset())
 	} else if r.Size() != nil {
-		return fmt.Sprintf("bytes=-{%d}", *r.Size()-1)
+		return fmt.Sprintf("bytes=-%d", *r.Size()-1)
 	}
 	panic("unreachable")
 }
