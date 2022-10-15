@@ -5,6 +5,7 @@ import (
 	"github.com/senrok/yadal/options"
 	"io"
 	"net/http"
+	"strings"
 )
 
 type Accessor interface {
@@ -28,7 +29,7 @@ type Accessor interface {
 	//
 	// # Behavior
 	// 	 - Input path MUST be file path, WITHOUT checking ObjectMode.
-	Write(ctx context.Context, path string, args options.WriteOptions, closer io.ReadSeeker) (uint64, error)
+	Write(ctx context.Context, path string, args options.WriteOptions, reader io.ReadSeeker) (uint64, error)
 
 	// Stat
 	//
@@ -95,6 +96,21 @@ func (c Capability) Has(capability Capability) bool {
 	return c&capability > 0
 }
 
+func (c Capability) String() string {
+	var result []string
+	for _, capability := range cRange {
+		if c.Has(capability) {
+			result = append(result, rg2Str[c])
+		}
+	}
+	return strings.Join(result, "|")
+}
+
+var (
+	cRange = []Capability{Read, Write, List, PreSign, Multipart, Blocking}
+	rg2Str = []string{"Read", "Write", "List", "PreSign", "Multipart", "Blocking"}
+)
+
 const (
 	// Read `read` and `stat`
 	Read Capability = 1 << iota
@@ -120,4 +136,5 @@ type Metadata interface {
 	Root() string
 	Name() string
 	Capability() Capability
+	String() string
 }

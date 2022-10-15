@@ -37,6 +37,9 @@ inspired by [Databend's OpenDAL](https://github.com/datafuselabs/opendal)
     - [Write](#write)
     - [Delete](#delete)
     - [List current directory](#list-current-directory)
+  - [Layers](#layers)
+    - [Retry](#retry)
+    - [Logging](#logging)
   
 - [License](#license)
 
@@ -50,11 +53,11 @@ inspired by [Databend's OpenDAL](https://github.com/datafuselabs/opendal)
 
 **Without the tears 😢**
 - [x] Powerful Layer Middlewares
-- [ ] Auto Retry (Backoff)
-- [ ] Logging Layer
+  - [x] Auto Retry (Backoff)
+  - [x] Logging Layer
 - [ ] Tracing Layer
 - [ ] Metrics Layer
-- [ ] Compress/Decompress
+- [ ] Compress/Decompress Layer
 - [ ] Service-side encryption
 
 **Efficiently**
@@ -288,6 +291,58 @@ func ExampleOperator_Object_list() {
 	}
 }
 ```
+
+### Layers
+#### Retry
+```go
+func ExampleOperator_Layer_retry() {
+	acc, _ := newS3Accessor()
+	op := NewOperatorFromAccessor(acc)
+
+	seed := time.Now().UnixNano()
+	random := rand.New(rand.NewSource(seed))
+
+	// retry layer
+	retryLayer := layers.NewRetryLayer(
+		layers.SetStrategy(
+			strategy.Limit(5),
+			strategy.BackoffWithJitter(
+				backoff.BinaryExponential(10*time.Millisecond),
+				jitter.Deviation(random, 0.5),
+			),
+		),
+	)
+
+	op.Layer(retryLayer)
+}
+```
+
+See more backoff [strategies](https://github.com/Rican7/retry)
+
+
+#### Logging
+
+```go
+func ExampleOperator_Layer_logging() {
+	acc, _ := newS3Accessor()
+	op := NewOperatorFromAccessor(acc)
+
+	// logger
+	logger, _ := zap.NewProduction()
+	s := logger.Sugar()
+	
+	// logging layer
+	loggingLayer := layers.NewLoggingLayer(
+		layers.SetLogger(
+			layers.NewLoggerAdapter(s.Info, s.Infof),
+		),
+	)
+
+	op.Layer(loggingLayer)
+}
+```
+
+
 
 ## License
 

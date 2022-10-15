@@ -1,12 +1,19 @@
 package providers
 
-import "github.com/senrok/yadal/interfaces"
+import (
+	"fmt"
+	"github.com/senrok/yadal/interfaces"
+)
 
 type Metadata struct {
 	provider   interfaces.Provider
 	root       string
 	name       string
 	capability interfaces.Capability
+}
+
+func (m Metadata) String() string {
+	return fmt.Sprintf("provider: %s root: %s name: %s capability: %s", m.provider, m.root, m.name, m.capability)
 }
 
 func (m Metadata) Provider() interfaces.Provider {

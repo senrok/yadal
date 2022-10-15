@@ -1,4 +1,4 @@
-package layer
+package layers
 
 import (
 	"github.com/senrok/yadal/interfaces"
