@@ -154,7 +154,7 @@ func (o *Object) Delete(ctx context.Context) error {
 //		}
 //	}
 func (o *Object) List(ctx context.Context) (interfaces.ObjectStream, error) {
-	if !strings.HasPrefix(o.path, "/") {
+	if !strings.HasSuffix(o.path, "/") {
 		return nil, ErrNotADir
 	}
 	return o.accessor.List(ctx, o.path, options.ListOptions{})

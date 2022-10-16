@@ -14,15 +14,16 @@ import (
 )
 
 var (
-	DAL_S3_BUCKET            = os.Getenv("DAL_S3_BUCKET")
-	DAL_S3_ENDPOINT          = os.Getenv("DAL_S3_ENDPOINT")
-	DAL_S3_ACCESS_KEY_ID     = os.Getenv("DAL_S3_ACCESS_KEY_ID")
-	DAL_S3_SECRET_ACCESS_KEY = os.Getenv("DAL_S3_SECRET_ACCESS_KEY")
-	DAL_S3_TEST              = os.Getenv("DAL_S3_TEST")
+	DAL_S3_BUCKET                 = os.Getenv("DAL_S3_BUCKET")
+	DAL_S3_ENDPOINT               = os.Getenv("DAL_S3_ENDPOINT")
+	DAL_S3_ACCESS_KEY_ID          = os.Getenv("DAL_S3_ACCESS_KEY_ID")
+	DAL_S3_SECRET_ACCESS_KEY      = os.Getenv("DAL_S3_SECRET_ACCESS_KEY")
+	DAL_S3_TEST                   = os.Getenv("DAL_S3_TEST")
+	runTest                  bool = DAL_S3_TEST == "on"
 )
 
 func TestMain(m *testing.M) {
-	if DAL_S3_TEST == "on" {
+	if runTest {
 		if DAL_S3_BUCKET == "" || DAL_S3_ENDPOINT == "" {
 			panic(fmt.Errorf("please set the DAL_S3_BUCKET and DAL_S3_ENDPOINT env"))
 		}
@@ -56,7 +57,10 @@ func setupDriver(t *testing.T) interfaces.Accessor {
 	return d
 }
 
-func TestNewDriver(t *testing.T) {
+func TestDriver_Test(t *testing.T) {
+	if !runTest {
+		return
+	}
 	d, err := NewDriver(context.Background(), Options{
 		Bucket:                     DAL_S3_BUCKET,
 		Endpoint:                   DAL_S3_ENDPOINT,
@@ -72,50 +76,45 @@ func TestNewDriver(t *testing.T) {
 	})
 	assert.Nilf(t, err, "%s", err)
 	assert.NotNil(t, d)
-}
+	t.Run("create", func(t *testing.T) {
+		acc := setupDriver(t)
+		err := acc.Create(context.Background(), "test-dir/", options.CreateOptions{})
+		assert.Nilf(t, err, "%s", err)
+	})
+	t.Run("write", func(t *testing.T) {
+		acc := setupDriver(t)
+		text := "hello world"
+		body := strings.NewReader(text)
 
-func TestDriver_Create(t *testing.T) {
-	acc := setupDriver(t)
-	err := acc.Create(context.Background(), "test-dir/", options.CreateOptions{})
-	assert.Nilf(t, err, "%s", err)
-}
-
-func TestDriver_Write(t *testing.T) {
-	acc := setupDriver(t)
-	text := "hello world"
-	body := strings.NewReader(text)
-
-	size, err := acc.Write(
-		context.Background(),
-		"test-dir/hello.txt",
-		options.WriteOptions{Size: uint64(len(text))},
-		body,
-	)
-	assert.Equal(t, uint64(len(text)), size)
-	assert.Nilf(t, err, "%s", err)
-}
-
-func TestDriver_Read(t *testing.T) {
-	acc := setupDriver(t)
-	read, err := acc.Read(context.Background(), "test-dir/hello.txt", options.ReadOptions{})
-	assert.Nilf(t, err, "%s", err)
-	b, _ := io.ReadAll(read)
-	assert.Equal(t, "hello world", string(b))
-}
-
-func TestDriver_List(t *testing.T) {
-	acc := setupDriver(t)
-	s, err := acc.List(context.Background(), "test-dir/", options.ListOptions{})
-	assert.Nilf(t, err, "%s", err)
-	assert.True(t, s.HasNext())
-	e, err := s.Next(context.Background())
-	assert.Nilf(t, err, "%s", err)
-	assert.Equal(t, "test-dir/hello.txt", e.Path())
-	assert.False(t, s.HasNext())
-}
-
-func TestDriver_Delete(t *testing.T) {
-	acc := setupDriver(t)
-	err := acc.Delete(context.Background(), "test-dir/hello.txt", options.DeleteOptions{})
-	assert.Nilf(t, err, "%s", err)
+		size, err := acc.Write(
+			context.Background(),
+			"test-dir/hello.txt",
+			options.WriteOptions{Size: uint64(len(text))},
+			body,
+		)
+		assert.Equal(t, uint64(len(text)), size)
+		assert.Nilf(t, err, "%s", err)
+	})
+	t.Run("read", func(t *testing.T) {
+		acc := setupDriver(t)
+		read, err := acc.Read(context.Background(), "test-dir/hello.txt", options.ReadOptions{})
+		assert.Nilf(t, err, "%s", err)
+		b, _ := io.ReadAll(read)
+		assert.Equal(t, "hello world", string(b))
+	})
+	t.Run("list", func(t *testing.T) {
+		acc := setupDriver(t)
+		s, err := acc.List(context.Background(), "test-dir/", options.ListOptions{})
+		assert.Nilf(t, err, "%s", err)
+		assert.True(t, s.HasNext())
+		e, err := s.Next(context.Background())
+		assert.Nilf(t, err, "%s", err)
+		assert.Equal(t, "test-dir/hello.txt", e.Path())
+		assert.False(t, s.HasNext())
+	})
+	t.Run("delete", func(t *testing.T) {
+		acc := setupDriver(t)
+		err := acc.Delete(context.Background(), "test-dir/hello.txt", options.DeleteOptions{})
+		assert.Nilf(t, err, "%s", err)
+	})
 }
