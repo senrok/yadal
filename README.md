@@ -54,15 +54,15 @@ inspired by [Databend's OpenDAL](https://github.com/datafuselabs/opendal)
 - [x] Access different storage services in the same way
 - [ ] Behavior tests for all services
   - [x] S3 and S3 compatible services
-  - [ ] fs: POSIX compatible filesystem
+  - [x] fs: POSIX compatible filesystem
 
 **Without the tears 😢**
 - [x] Powerful Layer Middlewares
   - [x] Auto Retry (Backoff)
   - [x] Logging Layer
-- [ ] Tracing Layer
-- [ ] Metrics Layer
-- [ ] Compress/Decompress Layer
+  - [ ] Tracing Layer
+  - [ ] Metrics Layer
+- [ ] Compress/Decompress 
 - [ ] Service-side encryption
 
 **Efficiently**

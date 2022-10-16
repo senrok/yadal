@@ -8,7 +8,7 @@ import (
 func TestGetNameFromPath(t *testing.T) {
 	assert.Equal(t, "abc", GetNameFromPath("abc/"))
 	assert.Equal(t, "abc", GetNameFromPath("abc/"))
-	assert.Equal(t, "def", GetNameFromPath("abc/def/"))
+	assert.Equal(t, "def/", GetNameFromPath("abc/def/"))
 }
 
 func TestEncodePath(t *testing.T) {

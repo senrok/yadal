@@ -2,6 +2,7 @@ package fs
 
 import (
 	"context"
+	"fmt"
 	"github.com/senrok/yadal/interfaces"
 	"github.com/senrok/yadal/object"
 	"os"
@@ -29,5 +30,5 @@ func (d *DirStream) Next(ctx context.Context) (entry interfaces.Entry, err error
 	if err != nil {
 		return nil, err
 	}
-	return object.NewEntry(d.Driver, d.path, meta, false), nil
+	return object.NewEntry(d.Driver, fmt.Sprintf("%s%s", d.path, info.Name()), meta, false), nil
 }
