@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Test
         shell: bash
-        run: go test ./tests/...
+        run: go test ./tests/... -v
         env:
           TEST_DEBUG: on
           DAL_FS_TEST: on
