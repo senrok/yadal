@@ -17,6 +17,7 @@ import (
 
 var readWriteTests = []testFunc{
 	testCreateFile,
+	testCreateInDirFile,
 	testCreateFileExisting,
 	//testCreateFileWithSpecialChars,
 	testCreateDir,
@@ -49,6 +50,26 @@ func testCreateFile(t *testing.T, op *yadal.Operator) {
 
 	assert.Equal(t, interfaces.FILE, meta.Mode())
 	assert.Equal(t, uint64(0), *meta.ContentLength())
+
+	err = o.Delete(context.TODO())
+	assert.Nilf(t, err, "%s", err)
+}
+
+// Creates a file with the path should be success
+func testCreateInDirFile(t *testing.T, op *yadal.Operator) {
+	dir := "sub"
+	path := fmt.Sprintf("%s/%s", dir, uuid.New().String())
+	o := op.Object(path)
+
+	bytes := genBytes(4096)
+	err := o.Write(context.TODO(), bytes)
+	assert.Nilf(t, err, "%s", err)
+
+	meta, err := o.Metadata(context.TODO())
+	assert.Nilf(t, err, "%s", err)
+
+	assert.Equal(t, interfaces.FILE, meta.Mode())
+	assert.Equal(t, uint64(4096), *meta.ContentLength())
 
 	err = o.Delete(context.TODO())
 	assert.Nilf(t, err, "%s", err)
