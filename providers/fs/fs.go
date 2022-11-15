@@ -91,13 +91,13 @@ func (d Driver) Write(ctx context.Context, path string, args options.WriteOption
 	if err != nil {
 		return 0, errors.ParseFsError(errors.ErrWriteFailed, err, path)
 	}
-	parent := filepath.Dir(path)
+	parent := filepath.Dir(p)
 	err = os.MkdirAll(parent, os.ModePerm)
 	if err != nil {
 		return 0, errors.ParseFsError(errors.ErrWriteFailed, err, path)
 	}
 	var file *os.File
-	file, err = os.OpenFile(p, os.O_RDONLY|os.O_CREATE|os.O_RDWR, os.ModePerm)
+	file, err = os.OpenFile(p, os.O_RDONLY|os.O_CREATE|os.O_RDWR|os.O_TRUNC, os.ModePerm)
 	defer func() {
 		_ = file.Close()
 	}()
