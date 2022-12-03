@@ -54,7 +54,7 @@ func (d Driver) Create(ctx context.Context, path string, args options.CreateOpti
 		}
 	case interfaces.FILE:
 		var file *os.File
-		file, err = os.OpenFile(p, os.O_RDONLY|os.O_CREATE, os.ModePerm)
+		file, err = os.OpenFile(p, os.O_RDONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
 		defer file.Close()
 		if err != nil {
 			return errors.ParseFsError(errors.ErrCreateFailed, err, p)
