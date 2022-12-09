@@ -42,19 +42,19 @@ func (d Driver) Create(ctx context.Context, path string, args options.CreateOpti
 		return errors.ParseFsError(errors.ErrCreateFailed, err, path)
 	}
 	parent := filepath.Dir(p)
-	err = os.MkdirAll(parent, os.ModePerm)
+	err = os.MkdirAll(parent, 0755)
 	if err != nil {
 		return errors.ParseFsError(errors.ErrCreateFailed, err, path)
 	}
 	switch interfaces.ObjectMode(args.Mode) {
 	case interfaces.DIR:
-		err = os.MkdirAll(p, os.ModePerm)
+		err = os.MkdirAll(p, 0755)
 		if err != nil {
 			return errors.ParseFsError(errors.ErrCreateFailed, err, p)
 		}
 	case interfaces.FILE:
 		var file *os.File
-		file, err = os.OpenFile(p, os.O_RDONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
+		file, err = os.OpenFile(p, os.O_RDONLY|os.O_CREATE|os.O_TRUNC, 0644)
 		defer file.Close()
 		if err != nil {
 			return errors.ParseFsError(errors.ErrCreateFailed, err, p)
@@ -68,7 +68,7 @@ func (d Driver) Read(ctx context.Context, path string, args options.ReadOptions)
 	if err != nil {
 		return nil, errors.ParseFsError(errors.ErrReadFailed, err, path)
 	}
-	file, err := os.OpenFile(p, os.O_RDONLY, os.ModePerm)
+	file, err := os.OpenFile(p, os.O_RDONLY, 0644)
 	if err != nil {
 		_ = file.Close()
 		return nil, errors.ParseFsError(errors.ErrReadFailed, err, path)
@@ -92,12 +92,12 @@ func (d Driver) Write(ctx context.Context, path string, args options.WriteOption
 		return 0, errors.ParseFsError(errors.ErrWriteFailed, err, path)
 	}
 	parent := filepath.Dir(p)
-	err = os.MkdirAll(parent, os.ModePerm)
+	err = os.MkdirAll(parent, 0755)
 	if err != nil {
 		return 0, errors.ParseFsError(errors.ErrWriteFailed, err, path)
 	}
 	var file *os.File
-	file, err = os.OpenFile(p, os.O_RDONLY|os.O_CREATE|os.O_RDWR|os.O_TRUNC, os.ModePerm)
+	file, err = os.OpenFile(p, os.O_RDONLY|os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	defer func() {
 		_ = file.Close()
 	}()
